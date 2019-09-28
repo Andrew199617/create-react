@@ -1,0 +1,32 @@
+{
+  "name": "lgd",
+  "version": "1.0.0",
+  "description": "Polyfill to allow you to use OLOO pattern properly in project. Check out VSC extensions by LearnGameDevelopment to have syntax highlighting for these polyfills.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Andrew199617/LGD.git"
+  },
+  "keywords": [
+    "LGD",
+    "OLOO",
+    "Polyfill",
+    "LearnGameDevelopment",
+    "Productivity",
+    "Inheritance",
+    "JavaScript",
+    "JS",
+    "Polymorphism",
+    "Super",
+    "Node"
+  ],
+  "author": "Learn Game Development",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Andrew199617/LGD/issues"
+  },
+  "homepage": "https://github.com/Andrew199617/LGD#readme"
+}
