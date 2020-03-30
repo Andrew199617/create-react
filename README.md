@@ -27,7 +27,7 @@ const Object2 = {
   },
 
   virtualMethod() {
-    Oloo.base(this, this.virtualMethod());
+    Oloo.base(this, this.virtualMethod);
     // could also use this.super.super if i inherited one more class.
     console.log('Inherited Class!');
   }

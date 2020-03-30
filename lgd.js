@@ -178,7 +178,7 @@ const Oloo = {
 */
 const LGD = {
   /**
-  * @description Create the global varaible that will be used for Oloo.
+  * @description Setup Oloo as a global varaible so you don't have to import it in every class.
   */
   setup() {
     if(typeof window !== 'undefined') {
@@ -190,7 +190,9 @@ const LGD = {
     else {
       console.error(red('Could not polyfill Oloo.'));
     }
-  }
+  },
+
+  Oloo
 };
 
 module.exports = LGD;
