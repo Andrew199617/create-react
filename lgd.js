@@ -3,6 +3,11 @@ function red(str) {
 }
 
 const Oloo = {
+  /**
+   * @description Helps keep track of what level we are for a function. This way we can always call the function with the intial instance but continually go down the chain of inheritance.
+   */
+  objectMap: new Map(),
+
   create: Object.create,
 
   /**
@@ -88,8 +93,16 @@ const Oloo = {
 
   base(obj, funcName, ...params) {
     funcName = typeof funcName === 'function' ? funcName.name : funcName;
+    
+    let parent = obj;
 
-    let parent = Object.getPrototypeOf(obj);
+    let currentObjectInstance = Oloo.objectMap.get(obj);
+    if(currentObjectInstance) {
+      // Keeps track of how far down the inheritance tree we are for a give function. Start from scratch if we called a different function.
+      obj = currentObjectInstance[funcName] || obj;
+    }
+
+    parent = Object.getPrototypeOf(obj);
 
     while(!parent.hasOwnProperty(funcName)) {
       // Start with the first base object that has the function. This will also ignore the first base objects func if we are calling the method without base since that will be the function we are calling this from.
@@ -109,13 +122,53 @@ const Oloo = {
         value: true
       })
     }
+    
+    if(currentObjectInstance) {
+      currentObjectInstance[funcName] = parent;
+    }
+    else {
+      currentObjectInstance = { obj, [funcName]: parent };
+      Oloo.objectMap.set(obj, currentObjectInstance);
+    }
 
     if(!parent.hasOwnProperty(funcName)) {
-      Oloo.base(parent, funcName, ...params);
+      Oloo._base(obj, parent, funcName, ...params);
       return;
     }
 
-    parent[funcName](...params);
+    parent[funcName].bind(currentObjectInstance.obj)(...params);
+
+    if(currentObjectInstance.obj) {
+      Oloo.objectMap.delete(currentObjectInstance.obj);
+    }
+  },
+  
+  _base(objInstance, obj, funcName, ...params) {
+    let parent = Object.getPrototypeOf(obj);
+
+    while(!parent.hasOwnProperty(funcName)) {
+      // Get parent that has func to call.
+      parent = Object.getPrototypeOf(parent);
+    }
+
+    if(!parent.hasOwnProperty("__parent__")) {
+      Object.defineProperty(parent, '__parent__', {
+        writable: false,
+        configurable: false,
+        enumerable: false,
+        value: true
+      })
+    }
+    
+    let currentObjectInstance = Oloo.objectMap.get(objInstance);
+    // Keeps track of last base class to call function.
+    currentObjectInstance[funcName] = parent;
+
+    parent[funcName].bind(currentObjectInstance.obj)(...params);
+
+    if(currentObjectInstance.obj) {
+      Oloo.objectMap.delete(currentObjectInstance.obj);
+    }
   }
 }
 

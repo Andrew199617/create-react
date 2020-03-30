@@ -38,7 +38,7 @@ declare interface OlooConstructor {
    * @param {T} baseObj The baseObj object we are inheriting from gets modified in place.
    * @returns {T & M} The new object.
    */
-  extends<T, M>(obj: M, baseObj: T): T & M;
+  extend<T, M>(obj: M, baseObj: T): T & M;
 
   /**
    * @template T, M
@@ -47,7 +47,7 @@ declare interface OlooConstructor {
    * @param {T} baseObj The baseObj object we are inheriting from gets modified in place.
    * @returns {T & M} The new object.
    */
-  extendsWithSymbols<T, M>(obj: M, baseObj: T): T & M;
+  extendWithSymbols<T, M>(obj: M, baseObj: T): T & M;
 
   /**
    * @description Call the base function of an object.
