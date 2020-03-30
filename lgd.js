@@ -1,3 +1,123 @@
+function red(str) {
+  return `\x1b[31m${str}\x1b[0m`;
+}
+
+const Oloo = {
+  create: Object.create,
+
+  /**
+   * @template T, M
+   * @description Assign an Object the same way that Object.Assign works but with getters, setters and inheritance.
+   * @param {T} baseObj The baseObj object we are inheriting from gets modified in place.
+   * @param {M} obj The objects to to apply.
+   * @returns {T & M} The new object.
+   */
+  assign(baseObj, obj) {
+    let createdPrototype = false;
+  
+    let descriptors = Object.keys(obj)
+      .reduce((descriptors, key) => {
+        const descriptor = Object.getOwnPropertyDescriptor(obj, key);
+
+        if(typeof descriptor.get === 'undefined' && typeof obj[key] === 'function') {
+          if(!createdPrototype) {
+            createdPrototype = true;
+            Object.setPrototypeOf(baseObj, Object.create(baseObj.__proto__));
+          }
+          baseObj.__proto__[key] = obj[key];
+          return descriptors;
+        }
+
+        descriptors[key] = descriptor;
+        return descriptors;
+      }, {});
+
+    Object.defineProperties(baseObj, descriptors);
+    
+    return baseObj;
+  },
+  
+  assignWithSymbols(baseObj, obj) {
+    let createdPrototype = false;
+
+    let descriptors = Object.keys(obj)
+      .reduce((descriptors, key) => {
+        const descriptor = Object.getOwnPropertyDescriptor(obj, key);
+
+        if(typeof descriptor.get === 'undefined' && typeof obj[key] === 'function') {
+          if(!createdPrototype) {
+            createdPrototype = true;
+            Object.setPrototypeOf(baseObj, Object.create(baseObj.__proto__));
+          }
+          baseObj.__proto__[key] = obj[key];
+          return descriptors;
+        }
+
+        descriptors[key] = descriptor;
+        return descriptors;
+      }, {});
+
+    // by default, Object.assign copies enumerable Symbols too
+    Object.getOwnPropertySymbols(obj)
+      .forEach(sym => {
+        let descriptor = Object.getOwnPropertyDescriptor(obj, sym);
+        if (descriptor.enumerable) {
+          descriptors[sym] = descriptor;
+        }
+      });
+
+    Object.defineProperties(baseObj, descriptors);
+  
+    return baseObj;
+  },
+  
+  /**
+   * @template T, M
+   * @description Same as assign but in the format of C# with class followed by base class.
+   * @param {M} obj The objects to to apply.
+   * @param {T} baseObj The baseObj object we are inheriting from gets modified in place.
+   * @returns {T & M} The new object.
+   */
+  extend(obj, baseObj) {
+    return Oloo.assign(baseObj, obj);
+  },
+  
+  extendWithSymbols(obj, baseObj) {
+    return Oloo.assignWithSymbols(baseObj, obj);
+  },
+
+  base(obj, funcName, ...params) {
+    funcName = typeof funcName === 'function' ? funcName.name : funcName;
+
+    let parent = Object.getPrototypeOf(obj);
+
+    while(!parent.hasOwnProperty(funcName)) {
+      // Start with the first base object that has the function. This will also ignore the first base objects func if we are calling the method without base since that will be the function we are calling this from.
+      parent = Object.getPrototypeOf(parent);
+    }
+
+    if(!obj.hasOwnProperty("__parent__")) {
+      // We ignore the first prototype since that is still the same object.
+      parent = Object.getPrototypeOf(parent);
+    }
+
+    if(!parent.hasOwnProperty("__parent__")) {
+      Object.defineProperty(parent, '__parent__', {
+        writable: false,
+        configurable: false,
+        enumerable: false,
+        value: true
+      })
+    }
+
+    if(!parent.hasOwnProperty(funcName)) {
+      Oloo.base(parent, funcName, ...params);
+      return;
+    }
+
+    parent[funcName](...params);
+  }
+}
 
 /**
 * @description Public facing class.
@@ -5,75 +125,18 @@
 */
 const LGD = {
   /**
-  * @description Polyfill Object with super to be able to use super when using OLOO.
+  * @description Create the global varaible that will be used for Oloo.
   */
-  polyfill() {
-    Object.defineProperty(
-      Object.prototype,
-      'super',
-      {
-        get() {
-          let parent = Object.getPrototypeOf(this);
-          if(!this.hasOwnProperty("__parent__")) {
-            parent = Object.getPrototypeOf(parent);
-          }
-
-          if(!parent.hasOwnProperty("__parent__")) {
-            Object.defineProperty(parent, '__parent__', {
-              writable: false,
-              configurable: false,
-              enumerable: false,
-              value: true
-            })
-          }
-
-          return parent;
-        },
-        enumerable: false,
-        configurable: false
-      })
-  },
-
-  /**
-   * @description Assign and Object the same as Object.Assign but works with getters, setters and inheritance.
-   * @param {Object} target The target object we are inheriting from gets modified in place.
-   * @param {Object[]} sources The objects to to apply
-   * @returns {Object} The new object.
-   */
-  ObjectAssign(target, ...sources) {
-    let createdPrototype = false;
-  
-    sources.forEach(source => {
-      let descriptors = Object.keys(source)
-        .reduce((descriptors, key) => {
-          const descriptor = Object.getOwnPropertyDescriptor(source, key);
-  
-          if(typeof descriptor.get === 'undefined' && typeof source[key] === 'function') {
-            if(!createdPrototype) {
-              createdPrototype = true;
-              Object.setPrototypeOf(target, Object.create(target.__proto__));
-            }
-            target.__proto__[key] = source[key];
-            return descriptors;
-          }
-  
-          descriptors[key] = descriptor;
-          return descriptors;
-        }, {});
-  
-      // by default, Object.assign copies enumerable Symbols too
-      Object.getOwnPropertySymbols(source)
-        .forEach(sym => {
-          let descriptor = Object.getOwnPropertyDescriptor(source, sym);
-          if (descriptor.enumerable) {
-            descriptors[sym] = descriptor;
-          }
-        });
-  
-      Object.defineProperties(target, descriptors);
-    });
-  
-    return target;
+  setup() {
+    if(typeof window !== 'undefined') {
+      window.Oloo = Oloo;
+    }
+    else if(typeof global !== 'undefined') {
+      global.Oloo = Oloo;
+    }
+    else {
+      console.error(red('Could not polyfill Oloo.'));
+    }
   }
 };
 
