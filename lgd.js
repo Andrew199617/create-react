@@ -2,6 +2,11 @@ function red(str) {
   return `\x1b[31m${str}\x1b[0m`;
 }
 
+/**
+ * @description Helps with implementing Objects Linked to Other Objects Pattern. No need for this bindings. Also lets you keep your getters and setters as apposed to using Objects.assign. 
+ * @see https://www.learngamedevelopment.net/blog/oloo(objectslinkingtootherobjects)
+ * @class OlooConstructor
+ */
 const Oloo = {
   /**
    * @description Helps keep track of what level we are for a function. This way we can always call the function with the intial instance but continually go down the chain of inheritance.

@@ -14,7 +14,12 @@ declare module '@learngamedevelopment/oloo' {
     Oloo: OlooConstructor;
   }
 
-  declare interface OlooConstructor {
+  /**
+   * @description Helps with implementing Objects Linked to Other Objects Pattern. No need for this bindings. Also lets you keep your getters and setters as apposed to using Objects.assign. 
+   * @see https://www.learngamedevelopment.net/blog/oloo(objectslinkingtootherobjects)
+   * @class OlooConstructor
+   */
+  interface OlooConstructor {
     /**
      * Creates an object that has the specified prototype or that has null prototype.
      * @param o Object to use as a prototype. May be null.
@@ -84,7 +89,7 @@ declare module '@learngamedevelopment/oloo' {
     base(obj: {}, funcName: string, ...params: any[]);
   }
   
-  declare var Oloo: OlooConstructor;
+  var Oloo: OlooConstructor;
   
 
   export = LGDType;
