@@ -21,67 +21,82 @@ declare module '@learngamedevelopment/oloo' {
    */
   interface OlooConstructor {
     /**
-     * Creates an object that has the specified prototype or that has null prototype.
+     * @description Creates an object that has the specified prototype or that has null prototype.
      * @param o Object to use as a prototype. May be null.
      */
     create(o: object | null): any;
   
     /**
-     * Creates an object that has the specified prototype, and that optionally contains specified properties.
+     * @description Creates an object that has the specified prototype, 
+     * and that optionally contains specified properties.
      * @param o Object to use as a prototype. May be null
      * @param properties JavaScript object that contains one or more property descriptors.
      */
     create(o: object | null, properties: PropertyDescriptorMap & ThisType<any>): any;
+
+    /**
+     * @description This method allows you to have a smaller memory footprint for a much slower initial load. 
+     * Pair with assignSlow.
+     * 
+     * Typically if you use Object.create you will have prototypes that contain getters down the
+     * prototype chain. This will remove those, making it so you only have one Property Descriptor per Accessor.
+     * 
+     * @param {T} obj The object to create instance for.
+     */
+    createSlow<T>(obj: T): T;
   
     /**
-     * @template T, M
-     * @description Assign an Object the same way that Object.Assign works but with getters, setters and inheritance. Does not assign Symbols for performance.
+     * @description As fast as Object.assign and Object.create. 
+     * 
+     * Keeps Getters and setters and inheritance of functions. 
+     * Will also keep inheritance of Getters and Setters. 
+     * Has same memory efficiency as Object.create/assign.
+     * 
+     * Usage:
+     * ``` js
+     * const BaseObj = { get var() { return 'ignored': } };
+     * const Obj = { get var() { return 'hello'; } };
+     * const baseObj = Object.create(BaseObj);
+     * const obj = Oloo.assignFast(baseObj, Obj);
+     * // baseObj.var === 'ignored'
+     * // obj.var === 'hello'
+     * ```
+     * @see https://www.learngamedevelopment.net/blog/oloo(objectslinkingtootherobjects)
      * @param {T} baseObj The baseObj object we are inheriting from gets modified in place.
-     * @param {M} obj The objects to to apply.
-     * @returns {T & M} The new object.
+     * @param {M} obj The objects to assign. Obj Inherits from baseObj.
      */
     assign<T, M>(baseObj: T, obj: M): T & M;
   
     /**
-     * @template T, M
-     * @description Assign an Object the same way that Object.Assign works but with getters, setters and inheritance.
+     * @description Same as assign but also carries over Symbols. 
      * @param {T} baseObj The baseObj object we are inheriting from gets modified in place.
-     * @param {M} obj The objects to to apply.
-     * @returns {T & M} The new object.
+     * @param {M} obj The objects to assign. Obj Inherits from baseObj.
      */
     assignWithSymbols<T, M>(baseObj: T, obj: M): T & M;
-  
+
     /**
-     * @template T, M
-     * @description Same as assign but in the format of C# with class followed by base class. Does not assign symbols for performance.
-     * @param {M} obj The objects to to apply.
+     * @description Will only keep inheritance of Functions. Getters and Setters will be Overwritten.
+     * 
+     * This method allows you to have a smaller memory footprint for a slower initial load. 
+     * Do not load more than 100,000 object use regular assign if you need that many.
+     * 
+     * Ideal for classes that don't get created often like Managers, Singletons.
+     * 
      * @param {T} baseObj The baseObj object we are inheriting from gets modified in place.
-     * @returns {T & M} The new object.
+     * @param {M} obj The objects to assign. Obj Inherits from baseObj.
      */
-    extend<T, M>(obj: M, baseObj: T): T & M;
-  
-    /**
-     * @template T, M
-     * @description Same as assign but in the format of C# with class followed by base class. 
-     * @param {M} obj The objects to to apply.
-     * @param {T} baseObj The baseObj object we are inheriting from gets modified in place.
-     * @returns {T & M} The new object.
-     */
-    extendWithSymbols<T, M>(obj: M, baseObj: T): T & M;
+    assignSlow<T, M>(baseObj: T, obj: M): T & M;
   
     /**
      * @description Call the base function of an object.
-     * @template R
      * @param {{}} obj The object with the function.
      * @param {function(): R} func The function to call. Pass in using ObjectName.function or this.function.
      * @param {...any[]} params The paramaters to call the function with.
-     * @returns {R} The return of the func you passed in.
      */
     base<R>(obj: {}, func: () => R, ...params: any[]): R;
   
     /**
      * @description Call the base function of an object.
-     * @template R
      * @param {{}} obj The object with the function.
      * @param {string} funcName String name of the function to call. 'functionName'.
      * @param {...any[]} params The paramaters to call the function with.

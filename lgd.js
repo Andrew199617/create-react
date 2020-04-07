@@ -15,14 +15,37 @@ const Oloo = {
 
   create: Object.create,
 
-  /**
-   * @template T, M
-   * @description Assign an Object the same way that Object.Assign works but with getters, setters and inheritance.
-   * @param {T} baseObj The baseObj object we are inheriting from gets modified in place.
-   * @param {M} obj The objects to to apply.
-   * @returns {T & M} The new object.
-   */
+  createSlow(obj) {
+    Oloo.assignSlow({}, obj);
+  },
+
   assign(baseObj, obj) {
+    const newObj = Object.create(obj);
+    oldProto = baseObj.__proto__;
+    baseObj.__proto__ = newObj.__proto__;
+    baseObj.__proto__.__proto__ = oldProto;
+    return baseObj;
+  },
+  
+  assignWithSymbols(baseObj, obj) {
+    baseObj = Oloo.assign(baseObj, obj);
+    
+    let descriptors = [];
+    // by default, Object.assign copies enumerable Symbols too
+    Object.getOwnPropertySymbols(obj)
+      .forEach(sym => {
+        let descriptor = Object.getOwnPropertyDescriptor(obj, sym);
+        if (descriptor.enumerable) {
+          descriptors[sym] = descriptor;
+        }
+      });
+
+    Object.defineProperties(baseObj, descriptors);
+  
+    return baseObj;
+  },
+
+  assignSlow(baseObj, obj) {
     let createdPrototype = false;
   
     let descriptors = Object.keys(obj)
@@ -45,55 +68,6 @@ const Oloo = {
     Object.defineProperties(baseObj, descriptors);
     
     return baseObj;
-  },
-  
-  assignWithSymbols(baseObj, obj) {
-    let createdPrototype = false;
-
-    let descriptors = Object.keys(obj)
-      .reduce((descriptors, key) => {
-        const descriptor = Object.getOwnPropertyDescriptor(obj, key);
-
-        if(typeof descriptor.get === 'undefined' && typeof obj[key] === 'function') {
-          if(!createdPrototype) {
-            createdPrototype = true;
-            Object.setPrototypeOf(baseObj, Object.create(baseObj.__proto__));
-          }
-          baseObj.__proto__[key] = obj[key];
-          return descriptors;
-        }
-
-        descriptors[key] = descriptor;
-        return descriptors;
-      }, {});
-
-    // by default, Object.assign copies enumerable Symbols too
-    Object.getOwnPropertySymbols(obj)
-      .forEach(sym => {
-        let descriptor = Object.getOwnPropertyDescriptor(obj, sym);
-        if (descriptor.enumerable) {
-          descriptors[sym] = descriptor;
-        }
-      });
-
-    Object.defineProperties(baseObj, descriptors);
-  
-    return baseObj;
-  },
-  
-  /**
-   * @template T, M
-   * @description Same as assign but in the format of C# with class followed by base class.
-   * @param {M} obj The objects to to apply.
-   * @param {T} baseObj The baseObj object we are inheriting from gets modified in place.
-   * @returns {T & M} The new object.
-   */
-  extend(obj, baseObj) {
-    return Oloo.assign(baseObj, obj);
-  },
-  
-  extendWithSymbols(obj, baseObj) {
-    return Oloo.assignWithSymbols(baseObj, obj);
   },
 
   base(obj, funcName, ...params) {
