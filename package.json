@@ -1,6 +1,6 @@
 {
   "name": "@learngamedevelopment/oloo",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Polyfill to allow you to use OLOO pattern properly in project. Check out VSC extensions by LearnGameDevelopment to have syntax highlighting for these polyfills.",
   "main": "lgd.js",
   "types": "typings/lgd.d.ts",
