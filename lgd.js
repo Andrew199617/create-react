@@ -21,9 +21,10 @@ const Oloo = {
 
   assign(baseObj, obj) {
     const newObj = Object.create(obj);
-    oldProto = baseObj.__proto__;
-    baseObj.__proto__ = newObj.__proto__;
-    baseObj.__proto__.__proto__ = oldProto;
+    const oldProto = Object.getPrototypeOf(baseObj);
+    const newProto = Object.getPrototypeOf(newObj);
+    Object.setPrototypeOf(newProto, oldProto);
+    Object.setPrototypeOf(baseObj, newProto);
     return baseObj;
   },
   
