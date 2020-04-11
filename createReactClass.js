@@ -16,8 +16,6 @@
  *
  */
 
-const emptyObject = {};
-
 function _invariant(condition, format, ...args) {
   if(typeof format !== 'string') {
     throw new Error('2nd argument must be string');
@@ -130,7 +128,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
       this.props = props;
       this.context = context;
-      this.refs = emptyObject;
+      this.refs = {};
       this.updater = updater || ReactNoopUpdateQueue;
       this.state = null;
 
@@ -200,9 +198,6 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
     else {
       Constructor.prototype.constructor = Constructor;
     }
-
-    // Clear Proto chain since we are gonna have closure in constructor forever.
-    Object.setPrototypeOf(spec, Object.prototype);
 
     const constructorProto = Constructor.prototype;
 
