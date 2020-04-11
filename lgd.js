@@ -1,3 +1,5 @@
+const ReactClassInterface = require('./reactComponentDefault');
+const ReactPureInterface = require('./reactPureDefault');
 const React = require('react');
 const factory = require('./createReactClass');
 
@@ -11,7 +13,7 @@ let ReactNoopUpdateQueue = new React.Component().updater;
 
 const createReactComponent = factory(
   React.Component,
-  React.isValidElement,
+  ReactClassInterface,
   ReactNoopUpdateQueue
 );
 
@@ -19,7 +21,7 @@ ReactNoopUpdateQueue = new React.PureComponent().updater;
 
 const createReactPure = factory(
   React.PureComponent,
-  React.isValidElement,
+  ReactPureInterface,
   ReactNoopUpdateQueue
 );
 

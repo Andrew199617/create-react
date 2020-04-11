@@ -69,262 +69,7 @@ else {
   ReactPropTypeLocationNames = {};
 }
 
-function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
-  /**
-   * Composite components are higher-level components that compose other composite
-   * or host components.
-   *
-   * To create a new type of `ReactClass`, pass a specification of
-   * your new class to `React.createClass`. The only requirement of your class
-   * specification is that you implement a `render` method.
-   *
-   *   var MyComponent = React.createClass({
-   *     render: function() {
-   *       return <div>Hello World</div>;
-   *     }
-   *   });
-   *
-   * The class specification supports a specific protocol of methods that have
-   * special meaning (e.g. `render`). See `ReactClassInterface` for
-   * more the comprehensive protocol. Any other properties and methods in the
-   * class specification will be available on the prototype.
-   *
-   * @interface ReactClassInterface
-   * @internal
-   */
-  const ReactClassInterface = {
-
-    /**
-     * An object containing properties and methods that should be defined on
-     * the component's constructor instead of its prototype (static methods).
-     *
-     * @type {object}
-     * @optional
-     */
-    statics: 'DEFINE_MANY',
-
-    /**
-     * Definition of prop types for this component.
-     *
-     * @type {object}
-     * @optional
-     */
-    propTypes: 'DEFINE_MANY',
-
-    /**
-     * Definition of context types for this component.
-     *
-     * @type {object}
-     * @optional
-     */
-    contextTypes: 'DEFINE_MANY',
-
-    /**
-     * Definition of context types this component sets for its children.
-     *
-     * @type {object}
-     * @optional
-     */
-    childContextTypes: 'DEFINE_MANY',
-
-    // ==== Definition methods ====
-
-    /**
-     * Invoked when the component is mounted. Values in the mapping will be set on
-     * `this.props` if that prop is not specified (i.e. using an `in` check).
-     *
-     * This method is invoked before `getInitialState` and therefore cannot rely
-     * on `this.state` or use `this.setState`.
-     *
-     * @return {object}
-     * @optional
-     */
-    getDefaultProps: 'DEFINE_MANY_MERGED',
-
-    /**
-     * Invoked once before the component is mounted. The return value will be used
-     * as the initial value of `this.state`.
-     *
-     *   getInitialState: function() {
-     *     return {
-     *       isOn: false,
-     *       fooBaz: new BazFoo()
-     *     }
-     *   }
-     *
-     * @return {object}
-     * @optional
-     */
-    getInitialState: 'DEFINE_MANY_MERGED',
-
-    /**
-     * @return {object}
-     * @optional
-     */
-    getChildContext: 'DEFINE_MANY_MERGED',
-
-    /**
-     * Uses props from `this.props` and state from `this.state` to render the
-     * structure of the component.
-     *
-     * No guarantees are made about when or how often this method is invoked, so
-     * it must not have side effects.
-     *
-     *   render: function() {
-     *     var name = this.props.name;
-     *     return <div>Hello, {name}!</div>;
-     *   }
-     *
-     * @return {ReactComponent}
-     * @required
-     */
-    render: 'DEFINE_ONCE',
-
-    // ==== Delegate methods ====
-
-    /**
-     * Invoked when the component is initially created and about to be mounted.
-     * This may have side effects, but any external subscriptions or data created
-     * by this method must be cleaned up in `componentWillUnmount`.
-     *
-     * @optional
-     */
-    componentWillMount: 'DEFINE_MANY',
-
-    /**
-     * Invoked when the component has been mounted and has a DOM representation.
-     * However, there is no guarantee that the DOM node is in the document.
-     *
-     * Use this as an opportunity to operate on the DOM when the component has
-     * been mounted (initialized and rendered) for the first time.
-     *
-     * @param {DOMElement} rootNode DOM element representing the component.
-     * @optional
-     */
-    componentDidMount: 'DEFINE_MANY',
-
-    /**
-     * Invoked before the component receives new props.
-     *
-     * Use this as an opportunity to react to a prop transition by updating the
-     * state using `this.setState`. Current props are accessed via `this.props`.
-     *
-     *   componentWillReceiveProps: function(nextProps, nextContext) {
-     *     this.setState({
-     *       likesIncreasing: nextProps.likeCount > this.props.likeCount
-     *     });
-     *   }
-     *
-     * NOTE: There is no equivalent `componentWillReceiveState`. An incoming prop
-     * transition may cause a state change, but the opposite is not true. If you
-     * need it, you are probably looking for `componentWillUpdate`.
-     *
-     * @param {object} nextProps
-     * @optional
-     */
-    componentWillReceiveProps: 'DEFINE_MANY',
-
-    /**
-     * Invoked while deciding if the component should be updated as a result of
-     * receiving new props, state and/or context.
-     *
-     * Use this as an opportunity to `return false` when you're certain that the
-     * transition to the new props/state/context will not require a component
-     * update.
-     *
-     *   shouldComponentUpdate: function(nextProps, nextState, nextContext) {
-     *     return !equal(nextProps, this.props) ||
-     *       !equal(nextState, this.state) ||
-     *       !equal(nextContext, this.context);
-     *   }
-     *
-     * @param {object} nextProps
-     * @param {?object} nextState
-     * @param {?object} nextContext
-     * @return {boolean} True if the component should update.
-     * @optional
-     */
-    shouldComponentUpdate: 'DEFINE_ONCE',
-
-    /**
-     * Invoked when the component is about to update due to a transition from
-     * `this.props`, `this.state` and `this.context` to `nextProps`, `nextState`
-     * and `nextContext`.
-     *
-     * Use this as an opportunity to perform preparation before an update occurs.
-     *
-     * NOTE: You **cannot** use `this.setState()` in this method.
-     *
-     * @param {object} nextProps
-     * @param {?object} nextState
-     * @param {?object} nextContext
-     * @param {ReactReconcileTransaction} transaction
-     * @optional
-     */
-    componentWillUpdate: 'DEFINE_MANY',
-
-    /**
-     * Invoked when the component's DOM representation has been updated.
-     *
-     * Use this as an opportunity to operate on the DOM when the component has
-     * been updated.
-     *
-     * @param {object} prevProps
-     * @param {?object} prevState
-     * @param {?object} prevContext
-     * @param {DOMElement} rootNode DOM element representing the component.
-     * @optional
-     */
-    componentDidUpdate: 'DEFINE_MANY',
-
-    /**
-     * Invoked when the component is about to be removed from its parent and have
-     * its DOM representation destroyed.
-     *
-     * Use this as an opportunity to deallocate any external resources.
-     *
-     * NOTE: There is no `componentDidUnmount` since your component will have been
-     * destroyed by that point.
-     *
-     * @optional
-     */
-    componentWillUnmount: 'DEFINE_MANY',
-
-    /**
-     * Replacement for (deprecated) `componentWillMount`.
-     *
-     * @optional
-     */
-    UNSAFE_componentWillMount: 'DEFINE_MANY',
-
-    /**
-     * Replacement for (deprecated) `componentWillReceiveProps`.
-     *
-     * @optional
-     */
-    UNSAFE_componentWillReceiveProps: 'DEFINE_MANY',
-
-    /**
-     * Replacement for (deprecated) `componentWillUpdate`.
-     *
-     * @optional
-     */
-    UNSAFE_componentWillUpdate: 'DEFINE_MANY',
-
-    // ==== Advanced methods ====
-
-    /**
-     * Updates the component's currently mounted DOM representation.
-     *
-     * By default, this implements React's rendering and reconciliation algorithm.
-     * Sophisticated clients may wish to override this.
-     *
-     * @param {ReactReconcileTransaction} transaction
-     * @internal
-     * @overridable
-     */
-    updateComponent: 'OVERRIDE_BASE'
-  };
+function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
   function validateTypeDef(displayName, typeDef, location) {
     for(const propName in typeDef) {
@@ -389,24 +134,68 @@ function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
       this.updater = updater || ReactNoopUpdateQueue;
       this.state = null;
 
+      const createdObj = spec.create(props);
+      let newObject = Object.getPrototypeOf(createdObj);
+      let descriptors = {};
+
+      let obj = {};
+      let thisProto = Object.getPrototypeOf(Object.getPrototypeOf(this));
+      Object.setPrototypeOf(thisProto, obj)
+
+      while(newObject !== Object.prototype) {
+        let setOnProto = false;
+        Object.keys(newObject)
+          .forEach(key => {
+            const descriptor = Object.getOwnPropertyDescriptor(newObject, key);
+            if(typeof descriptor.get === 'undefined' && typeof descriptor.set === 'undefined') {
+              if(typeof newObject[key] === 'function') {
+                if(key === 'constructor') {
+                  obj[key] = newObject[key];
+                  setOnProto = true;
+                }
+                else if(this[key]) {
+                  obj[key] = newObject[key].bind(this);
+                  setOnProto = true;
+                }
+                else {
+                  this[key] = newObject[key].bind(this);
+                }
+              }
+              // Ignoring properties on child classes should be on parent.
+            }
+            else {
+              descriptors[key] = descriptor;
+            }
+          });
+
+        newObject = Object.getPrototypeOf(newObject);
+        if(setOnProto && newObject !== Object.prototype) {
+          // This is so we keep inherited methods if there are any.
+          const newProto = {};
+          Object.setPrototypeOf(obj, newProto)
+          obj = newProto;
+        }
+      }
+
+      // Assign getters and setters to this.
+      Object.defineProperties(this, descriptors);
+
       Object
-        .keys(spec)
+        .keys(createdObj)
         .forEach(element => {
-          this[element] = spec[element];
+          this[element] = createdObj[element];
         });
     });
 
-    const specProto = Object.getPrototypeOf(spec);
-    Object.setPrototypeOf(ReactClassComponent.prototype, specProto);
     Constructor.prototype = new ReactClassComponent();
 
     // Helps with debugging. Will log the name of the constructor when a error occurs.
     // Defaults to ReactClassComponent
-    if(specProto.constructor) {
-      Constructor.prototype.constructor = specProto.constructor;
+    if(spec.constructor) {
+      Constructor.prototype.constructor = spec.constructor;
     }
     else if(process.env.NODE_ENV !== 'production') {
-      eval(`Object.defineProperty(Constructor.prototype, 'constructor', { value: function ${specProto.displayName || 'ReactClassComponent'}(...params) { return Constructor(...params) }, writable: false, enumerable: false, configurable: false });`);
+      eval(`Object.defineProperty(Constructor.prototype, 'constructor', { value: function ${spec.displayName || 'ReactClassComponent'}(...params) { return Constructor(...params) }, writable: false, enumerable: false, configurable: false });`);
     }
     else {
       Constructor.prototype.constructor = Constructor;
@@ -415,12 +204,19 @@ function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
     // Clear Proto chain since we are gonna have closure in constructor forever.
     Object.setPrototypeOf(spec, Object.prototype);
 
-    const reactClass = Constructor.prototype;
+    const constructorProto = Constructor.prototype;
 
-    Constructor.propTypes = specProto.propTypes;
-    Constructor.contextTypes = specProto.contextTypes;
-    Constructor.childContextTypes = specProto.childContextTypes;
-    Constructor.displayName = specProto.displayName;
+    function assignDelete(value) {
+      if(spec[value]) {
+        Constructor[value] = spec[value];
+      }
+    }
+
+    assignDelete('defaultProps');
+    assignDelete('propTypes');
+    assignDelete('contextTypes');
+    assignDelete('childContextTypes');
+    assignDelete('displayName');
 
     if(process.env.NODE_ENV !== 'production') {
       validateTypeDef(Constructor.displayName, Constructor.propTypes, 'prop');
@@ -429,13 +225,18 @@ function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
     }
 
     _invariant(
-      reactClass.render,
+      spec.render,
       'createClass(...): Class specification must implement a `render` method.'
+    );
+
+    _invariant(
+      spec.create,
+      'need to implement create method on class, this is how we will create instances for React.'
     );
 
     if(process.env.NODE_ENV !== 'production') {
       warning(
-        !reactClass.componentShouldUpdate,
+        !spec.componentShouldUpdate,
         '%s has a method called '
           + 'componentShouldUpdate(). Did you mean shouldComponentUpdate()? '
           + 'The name is phrased as a question because the function is '
@@ -444,14 +245,14 @@ function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
       );
 
       warning(
-        !reactClass.componentWillRecieveProps,
+        !spec.componentWillRecieveProps,
         '%s has a method called '
           + 'componentWillRecieveProps(). Did you mean componentWillReceiveProps()?',
         spec.displayName || 'A component'
       );
 
       warning(
-        !reactClass.UNSAFE_componentWillRecieveProps,
+        !spec.UNSAFE_componentWillRecieveProps,
         '%s has a method called UNSAFE_componentWillRecieveProps(). '
           + 'Did you mean UNSAFE_componentWillReceiveProps()?',
         spec.displayName || 'A component'
@@ -459,9 +260,9 @@ function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
     }
 
     // Reduce time spent doing lookups by setting these on the prototype.
-    for(const methodName in ReactClassInterface) {
-      if(!reactClass[methodName]) {
-        reactClass[methodName] = null;
+    for(const methodName in defaultClass) {
+      if(!spec[methodName]) {
+        constructorProto[methodName] = null;
       }
     }
 

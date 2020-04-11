@@ -1,6 +1,6 @@
 {
   "name": "@mavega/react",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Create React Class, in a way that synchronizes with oloo. Also allows the use of Pure React classes.",
   "main": "lgd.js",
   "types": "typings/lgd.d.ts",
