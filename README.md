@@ -1,90 +1,117 @@
 # LGD
-Use OLOO pattern. Check out VSC extensions by LearnGameDevelopment to have syntax highlighting.
+- Pulled create-react-class out of react. 
+- Extended functionality to work for React.PureComponents and React.Component. 
 
 # Why to use this module.
-[Objects Linked to Other Objects Article](https://www.learngamedevelopment.net/blog/oloo(objectslinkingtootherobjects))
+create-react-class requires you to change the way you use React. <b>Forget about getInitialState or getDefaultProps.</b> Just use state like you normally would and when the react class gets created well initialize the state for you.
+
+# Other Modules
+- @mevega/oloo 
+   - Helps with inheritance of Objects.
+
+# Vscode Extensions
+- JavaScript to Typescript Converter & Syntax Highlighter
+   - Help with AutoComplete in vscode for React methods.
+   - Helps with inheritance when using plain Objects.
+   - Provides Linting of Objects for CreateReactClass.
+- JS/React Snippet Extension.
 
 # Examples
 
-## Using Oloo.assign
 ``` js
-const { setup } = require('@learngamedevelopment/oloo');
-setup();
+import BaseModal from 'SRC/Modals/BaseModal';
+import propTypes from 'prop-types';
+import styles from 'SRC/Utilities/Styles';
 
-const Object1 = {
+const { Oloo } = require('@mavega/oloo');
+const createReactPure = require('create-react').createReactPure;
+
+/**
+* @description A modal that helps with
+* @type {InputModalType}
+* @extends {BaseModalType, React.Component<InputModal.propTypes>}
+*/
+const InputModal = {
+  // Helps with debugging if error occurs. Should be removed in production by babel or something.
+  // displayName also works.
+  constructor: function InputModal() {},
+  displayName: 'InputModal',
+
+  /**
+  * @description Initialize an instance of InputModal.
+  * @returns {InputModalType}
+  */
   create() {
-    const object1 = Object.create(Object1);
+    const inputModal = Oloo.assign(BaseModal.create(), InputModal);
 
-    object1.var = 0;
-    object1.var2 = 'hi';
+    inputModal.modalStyle = {
+      ...inputModal.modalStyle,
+      ...styles.messageBoxStyle
+    };
 
-    return object1;
+    /**
+     * @description This is how you set state of the Object.
+     * State can't be used in PureComponent.
+     */
+    input.state = {
+      example: 'Not available in Pure'
+    }
+
+    return inputModal;
   },
 
-  virtualMethod() {
-    console.log('Base Class!');
-  }
-}
-
-const Object2 = {
-  create() {
-    const object2 = Oloo.assign(Object1.create(), Object2);
-    return object2;
+  componentDidMount() {
+    // Use like normal.
   },
 
-  virtualMethod() {
-    Oloo.base(this, this.virtualMethod);
-    console.log('Inherited Class!');
+  setStateExample() {
+    this.setState({ example: 'i changed state' });
   }
-}
 
-const object2Instance = Object2.create();
-object2Instance.virtualMethod();
-// Base Class!
-// Inherited Class!
+  renderBody() {
+    return (
+      <div>
+        <h1>Hi</h1>
+      </div>
+    );
+  },
+
+  render() {
+    if(!this.props.showing) {
+      return null;
+    }
+
+    return this.renderModal(
+      this.renderBody(),
+      this.modalStyle,
+      this.props.onClosed
+    );
+  }
+};
+
+InputModal.propTypes = {
+  /**
+  * @description Boolean that determines whether we are showing this modal.
+  */
+  showing: propTypes.bool.isRequired,
+
+  /**
+  * @description Function called when we want to close this modal.
+  */
+  onClosed: propTypes.func.isRequired
+};
+
+export const InputModalObject = InputModal;
+export default createReactPure(InputModal.create());
 ```
 
-## Using Oloo.assignSlow + Oloo.createSlow
 ``` js
-const { setup } = require('@learngamedevelopment/oloo');
-setup();
+import InputModal from 'SRC/InputModal';
 
-const Object1 = {
-  create() {
-    // must use createSlow in the first object of the chain.
-    const object1 = Object.createSlow(Object1);
-
-    object1.var = 0;
-    object1.var2 = 'hi';
-
-    return object1;
-  },
-
-  virtualMethod() {
-    console.log('Base Class!');
-  }
-}
-
-const Object2 = {
-  create() {
-    const object2 = Oloo.assignSlow(Object1.create(), Object2);
-    return object2;
-  },
-
-  virtualMethod() {
-    Oloo.base(this, this.virtualMethod);
-    console.log('Inherited Class!');
-  }
-}
-
-const object2Instance = Object2.create();
-object2Instance.virtualMethod();
-// Base Class!
-// Inherited Class!
+// Now you can use it like any React Component.
+<InputModal />
 ```
 
 # Release Notes
 
-## 2.1.0 
-
-- Improved speed tremendously. Kept older assign as assignSlow for creating classes that don't get created often.
+## 1.0.0
