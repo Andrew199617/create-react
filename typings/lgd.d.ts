@@ -1,5 +1,5 @@
 
-declare module 'create-react' {
+declare module '@mavega/react' {
 
   /**
   * @description Create-React-Classes

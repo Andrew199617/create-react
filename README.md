@@ -6,8 +6,10 @@
 create-react-class requires you to change the way you use React. <b>Forget about getInitialState or getDefaultProps.</b> Just use state like you normally would and when the react class gets created well initialize the state for you.
 
 # Other Modules
-- @mevega/oloo 
+- @mavega/oloo 
    - Helps with inheritance of Objects.
+- @babel/plugin-transform-react-display-name
+   - It can help with errors that occur. The name of the Object will show in Stack Trace.
 
 # Vscode Extensions
 - JavaScript to Typescript Converter & Syntax Highlighter
@@ -24,7 +26,7 @@ import propTypes from 'prop-types';
 import styles from 'SRC/Utilities/Styles';
 
 const { Oloo } = require('@mavega/oloo');
-const createReactPure = require('create-react').createReactPure;
+const { createReactPure } = require('@mavega/react');
 
 /**
 * @description A modal that helps with

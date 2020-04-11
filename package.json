@@ -1,12 +1,12 @@
 {
-  "name": "create-react",
+  "name": "@mavega/react",
   "version": "1.0.0",
   "description": "Create React Class, in a way that synchronizes with oloo. Also allows the use of Pure React classes.",
   "main": "lgd.js",
   "types": "typings/lgd.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Andrew199617/create-react"
+    "url": "git+https://github.com/Andrew199617/create-react.git"
   },
   "keywords": [
     "LGD",
