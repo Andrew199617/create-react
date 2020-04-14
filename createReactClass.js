@@ -107,11 +107,14 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
    * Creates a composite component class given a class specification.
    * See https://facebook.github.io/react/docs/top-level-api.html#react.createclass
    *
-   * @param {object} spec Class specification (which must define `render`).
+   * @param {{ create: Function }} spec Class specification (which must define `render`).
    * @return {function} Component constructor function.
    * @public
    */
   function createClass(spec) {
+    let functions = { length: 0 };
+    let descriptors = {};
+
     // To keep our warnings more understandable, we'll use a little hack here to
     // ensure that Constructor.name !== 'Constructor'. This makes sure we don't
     // unnecessarily identify a class without displayName as 'Constructor'.
@@ -132,57 +135,21 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       this.updater = updater || ReactNoopUpdateQueue;
       this.state = null;
 
-      const createdObj = spec.create(props);
-      let newObject = Object.getPrototypeOf(createdObj);
-      let descriptors = {};
-
-      let obj = {};
-      let thisProto = Object.getPrototypeOf(Object.getPrototypeOf(this));
-      Object.setPrototypeOf(thisProto, obj)
-
-      while(newObject !== Object.prototype) {
-        let setOnProto = false;
-        Object.keys(newObject)
-          .forEach(key => {
-            const descriptor = Object.getOwnPropertyDescriptor(newObject, key);
-            if(typeof descriptor.get === 'undefined' && typeof descriptor.set === 'undefined') {
-              if(typeof newObject[key] === 'function') {
-                if(key === 'constructor') {
-                  obj[key] = newObject[key];
-                  setOnProto = true;
-                }
-                else if(this[key]) {
-                  obj[key] = newObject[key].bind(this);
-                  setOnProto = true;
-                }
-                else {
-                  this[key] = newObject[key].bind(this);
-                }
-              }
-              // Ignoring properties on child classes should be on parent.
-            }
-            else {
-              descriptors[key] = descriptor;
-            }
-          });
-
-        newObject = Object.getPrototypeOf(newObject);
-        if(setOnProto && newObject !== Object.prototype) {
-          // This is so we keep inherited methods if there are any.
-          const newProto = {};
-          Object.setPrototypeOf(obj, newProto)
-          obj = newProto;
-        }
+      for (let index = 0; index < functions.length; index++) {
+        this[functions[index].key] = functions[index].func.bind(this);
       }
 
       // Assign getters and setters to this.
       Object.defineProperties(this, descriptors);
 
-      Object
-        .keys(createdObj)
-        .forEach(element => {
-          this[element] = createdObj[element];
-        });
+      const createdObj = spec.create.call(this, props);
+      if(createdObj) {
+        Object
+          .keys(createdObj)
+          .forEach(element => {
+            this[element] = createdObj[element];
+          });
+      }
     });
 
     Constructor.prototype = new ReactClassComponent();
@@ -201,6 +168,75 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
     const constructorProto = Constructor.prototype;
 
+    _invariant(
+      spec.render,
+      'createClass(...): Class specification must implement a `render` method.'
+    );
+
+    _invariant(
+      spec.create,
+      'need to implement create method on class, this is how we will create instances for React.'
+    );
+
+    let createdObj;
+    try {
+      createdObj = spec.create.call(this, spec.defaultProps || {});
+    }
+    catch(err) {
+      if(err.message && err.message.includes('props')) {
+        console.warn('@mavega/oloo: Error occurred creating object. Make sure you are only using props that will exist not matter what. Use defaultProps.');
+      }
+      
+      throw err;
+    }
+
+    if(createdObj) {
+      let newObject = Object.getPrototypeOf(createdObj);
+  
+      const addedFunctions = {};
+      let obj = {};
+      let thisProto = Object.getPrototypeOf(constructorProto);
+      Object.setPrototypeOf(thisProto, obj)
+  
+      while(newObject !== Object.prototype) {
+        let setOnProto = false;
+        Object.keys(newObject)
+          .forEach(key => {
+            const descriptor = Object.getOwnPropertyDescriptor(newObject, key);
+            if(typeof descriptor.get === 'undefined' && typeof descriptor.set === 'undefined') {
+              if(typeof newObject[key] === 'function') {
+                if(key === 'constructor') {
+                  obj[key] = newObject[key];
+                  setOnProto = true;
+                }
+                else if(addedFunctions[key]) {
+                  // no need to bind, if you use Oloo.base it will bind at runtime.
+                  obj[key] = newObject[key];
+                  setOnProto = true;
+                }
+                else {
+                  addedFunctions[key] = true;
+                  functions[functions.length] = { key, func: newObject[key] };
+                  functions.length++;
+                }
+              }
+              // Ignoring properties on child classes should be on parent.
+            }
+            else {
+              descriptors[key] = descriptor;
+            }
+          });
+  
+        newObject = Object.getPrototypeOf(newObject);
+        if(setOnProto && newObject !== Object.prototype) {
+          // This is so we keep inherited methods if there are any.
+          const newProto = {};
+          Object.setPrototypeOf(obj, newProto)
+          obj = newProto;
+        }
+      }
+    }
+
     function assignDelete(value) {
       if(spec[value]) {
         Constructor[value] = spec[value];
@@ -218,16 +254,6 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       validateTypeDef(Constructor.displayName, Constructor.contextTypes, 'context');
       validateTypeDef(Constructor.displayName, Constructor.childContextTypes, 'childContext');
     }
-
-    _invariant(
-      spec.render,
-      'createClass(...): Class specification must implement a `render` method.'
-    );
-
-    _invariant(
-      spec.create,
-      'need to implement create method on class, this is how we will create instances for React.'
-    );
 
     if(process.env.NODE_ENV !== 'production') {
       warning(
