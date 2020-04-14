@@ -107,7 +107,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
    * Creates a composite component class given a class specification.
    * See https://facebook.github.io/react/docs/top-level-api.html#react.createclass
    *
-   * @param {{ create: Function }} spec Class specification (which must define `render`).
+   * @param {{ create: () => Object }} spec Class specification (which must define `render`).
    * @return {function} Component constructor function.
    * @public
    */
@@ -190,45 +190,48 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       throw err;
     }
 
-    if(createdObj) {
-      let newObject = Object.getPrototypeOf(createdObj);
-  
-      const addedFunctions = {};
-      let obj = {};
-      let thisProto = Object.getPrototypeOf(constructorProto);
-      Object.setPrototypeOf(thisProto, obj)
-  
-      while(newObject !== Object.prototype) {
-        let setOnProto = false;
-        Object.keys(newObject)
-          .forEach(key => {
-            const descriptor = Object.getOwnPropertyDescriptor(newObject, key);
-            if(typeof descriptor.get === 'undefined' && typeof descriptor.set === 'undefined') {
-              if(typeof newObject[key] === 'function') {
-                if(key === 'constructor') {
-                  obj[key] = newObject[key];
-                  setOnProto = true;
-                }
-                else if(addedFunctions[key]) {
+    let newObject = createdObj ? Object.getPrototypeOf(createdObj) : spec;
+
+    const addedFunctions = {};
+    let obj = {};
+    let thisProto = Object.getPrototypeOf(constructorProto);
+    let setProtoOnObj = false;
+    
+    while(newObject !== Object.prototype) {
+      let setOnProto = false;
+      Object.keys(newObject)
+        .forEach(key => {
+          const descriptor = Object.getOwnPropertyDescriptor(newObject, key);
+          if(typeof descriptor.get === 'undefined' && typeof descriptor.set === 'undefined') {
+            if(typeof newObject[key] === 'function') {
+              if(key === 'constructor') {
+                obj[key] = newObject[key];
+                setOnProto = true;
+              }
+              else if(addedFunctions[key]) {
+                if(key !== 'create') {
                   // no need to bind, if you use Oloo.base it will bind at runtime.
                   obj[key] = newObject[key];
                   setOnProto = true;
                 }
-                else {
-                  addedFunctions[key] = true;
-                  functions[functions.length] = { key, func: newObject[key] };
-                  functions.length++;
-                }
               }
-              // Ignoring properties on child classes should be on parent.
+              else {
+                addedFunctions[key] = true;
+                functions[functions.length] = { key, func: newObject[key] };
+                functions.length++;
+              }
             }
-            else {
-              descriptors[key] = descriptor;
-            }
-          });
-  
-        newObject = Object.getPrototypeOf(newObject);
-        if(setOnProto && newObject !== Object.prototype) {
+            // Ignoring properties since we are assuming they are static properties.
+          }
+          else {
+            descriptors[key] = descriptor;
+          }
+        });
+
+      newObject = Object.getPrototypeOf(newObject);
+      if(setOnProto) { 
+        setProtoOnObj = true;
+        if (newObject !== Object.prototype) {
           // This is so we keep inherited methods if there are any.
           const newProto = {};
           Object.setPrototypeOf(obj, newProto)
@@ -236,6 +239,11 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
         }
       }
     }
+    
+    if(setProtoOnObj) {
+      Object.setPrototypeOf(thisProto, obj);
+    }
+    
 
     function assignDelete(value) {
       if(spec[value]) {

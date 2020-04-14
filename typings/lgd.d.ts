@@ -27,7 +27,7 @@ declare module '@mavega/react' {
      * createReactComponent(BaseObj);
      * ```
      * For More detailed example see ReadMe.
-     * @param {React.Component<P, S>} objectToWrap The object to create a React.Component from.
+     * @param {React.Component<P, S>} objectToWrap The object to create a React.Component from. The object will have a create function to initialize the react instance. return null if you don't need inheritance.
      */
     createReactComponent<P, S = {}>(objectToWrap: React.Component<P, S>) : ClassicComponentClass<P>;
 
@@ -49,7 +49,7 @@ declare module '@mavega/react' {
      * BaseObj.propTypes = {};
      * createReactPure(BaseObj);
      * ```
-     * @param {React.PureComponent<P, S>} objectToWrap The object to create a React.PureComponent from.
+     * @param {React.PureComponent<P, S> & { create: () => {}}} objectToWrap The object to create a React.PureComponent from. The object will have a create function to initialize the react instance. return null if you don't need inheritance.
      */
     createReactPure<P, S = {}>(objectToWrap: React.PureComponent<P, S>): ClassicComponentClass<P>;
   }
