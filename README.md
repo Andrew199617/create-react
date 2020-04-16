@@ -188,3 +188,4 @@ import InputModal from 'SRC/InputModal';
 - As close to React as possible.
 - One Singular Constructor called create().
 - Use 'this' in create and receive props.
+- Assign defaultProps, propTypes to static Object.

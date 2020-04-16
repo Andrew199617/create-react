@@ -1,6 +1,6 @@
 {
   "name": "@mavega/react",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Create React Class, in a way that synchronizes with oloo. Also allows the use of Pure React classes.",
   "main": "lgd.js",
   "types": "typings/lgd.d.ts",
@@ -25,9 +25,9 @@
   "author": "Learn Game Development",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Andrew199617/LGD/issues"
+    "url": "https://github.com/Andrew199617/create-react/issues"
   },
-  "homepage": "https://github.com/Andrew199617/LGD#readme",
+  "homepage": "https://github.com/Andrew199617/create-react#readme",
   "dependencies": {},
   "devDependencies": {
     "react": "^16.13.1"

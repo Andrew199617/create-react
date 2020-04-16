@@ -39,32 +39,27 @@ function _invariant(condition, format, ...args) {
 }
 
 function warning(condition, format, ...args) {
-  if(format === undefined) {
-    throw new Error('`warning(condition, format, ...args)` requires a warning '
-      + 'message argument');
+  if(condition) {
+    return;
   }
 
-  if(!condition) {
-    console.warn(format, ...args);
+  var argIndex = 0;
+  var message = 'Warning: ' + format.replace(/%s/g, () => args[argIndex++]);
+  if (typeof console !== 'undefined') {
+    console.error(message);
   }
+  try {
+    // --- Welcome to debugging React ---
+    // This error was thrown as a convenience so that you can use this stack
+    // to find the callsite that caused this warning to fire.
+    throw new Error(message);
+  } catch (x) {}
 }
 
 // Helper function to allow the creation of anonymous functions which do not
 // have .name set to the name of the variable being assigned to.
 function identity(fn) {
   return fn;
-}
-
-let ReactPropTypeLocationNames;
-if(process.env.NODE_ENV !== 'production') {
-  ReactPropTypeLocationNames = {
-    prop: 'prop',
-    context: 'context',
-    childContext: 'child context'
-  };
-}
-else {
-  ReactPropTypeLocationNames = {};
 }
 
 function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
@@ -80,7 +75,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
             '%s: %s type `%s` is invalid; it must be a function, usually from '
               + 'React.PropTypes.',
             displayName || 'ReactClass',
-            ReactPropTypeLocationNames[location],
+            location,
             propName
           );
         }
@@ -183,10 +178,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       createdObj = spec.create.call(this, spec.defaultProps || {});
     }
     catch(err) {
-      if(err.message && err.message.includes('props')) {
-        console.warn('@mavega/oloo: Error occurred creating object. Make sure you are only using props that will exist not matter what. Use defaultProps.');
-      }
-      
+      warning(false, 'Error occurred creating object. Possible Solution: Make sure you are only using props that will exist no matter what. Define them using defaultProps.');
       throw err;
     }
 
@@ -246,45 +238,56 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
     
 
     function assignDelete(value) {
-      if(spec[value]) {
+      if(typeof spec[value] !== 'undefined') {
         Constructor[value] = spec[value];
       }
     }
 
     assignDelete('defaultProps');
     assignDelete('propTypes');
+    assignDelete('contextType');
     assignDelete('contextTypes');
     assignDelete('childContextTypes');
     assignDelete('displayName');
 
     if(process.env.NODE_ENV !== 'production') {
-      validateTypeDef(Constructor.displayName, Constructor.propTypes, 'prop');
-      validateTypeDef(Constructor.displayName, Constructor.contextTypes, 'context');
-      validateTypeDef(Constructor.displayName, Constructor.childContextTypes, 'childContext');
-    }
+      validateTypeDef(Constructor.displayName, Constructor.propTypes, 'propTypes');
+      validateTypeDef(Constructor.displayName, Constructor.contextTypes, 'contextTypes');
+      validateTypeDef(Constructor.displayName, Constructor.childContextTypes, 'childContextTypes');
 
-    if(process.env.NODE_ENV !== 'production') {
+      warning(
+        !Constructor.childContextTypes, 
+        "%s using legacy childContextTypes.",
+        spec.displayName || 'ReactClass'
+      );
+
+      warning(
+        !Constructor.contextTypes, 
+        "%s using legacy contextTypes.",
+        spec.displayName || 'ReactClass'
+      );
+
       warning(
         !spec.componentShouldUpdate,
         '%s has a method called '
           + 'componentShouldUpdate(). Did you mean shouldComponentUpdate()? '
           + 'The name is phrased as a question because the function is '
           + 'expected to return a value.',
-        spec.displayName || 'A component'
+        spec.displayName || 'ReactClass'
       );
 
       warning(
         !spec.componentWillRecieveProps,
         '%s has a method called '
           + 'componentWillRecieveProps(). Did you mean componentWillReceiveProps()?',
-        spec.displayName || 'A component'
+        spec.displayName || 'ReactClass'
       );
 
       warning(
         !spec.UNSAFE_componentWillRecieveProps,
         '%s has a method called UNSAFE_componentWillRecieveProps(). '
           + 'Did you mean UNSAFE_componentWillReceiveProps()?',
-        spec.displayName || 'A component'
+        spec.displayName || 'ReactClass'
       );
     }
 
