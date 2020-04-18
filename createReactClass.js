@@ -60,7 +60,35 @@ function warning(condition, format, ...args) {
 // have .name set to the name of the variable being assigned to.
 function identity(fn) {
   return fn;
-}
+}  
+
+/**
+* Methods that React Interacts with. 
+* Everything else only needs to be known about by the class that created it.
+*/
+const ReactClassStaticInterface = {
+ /**
+  * This method is invoked after a component is instantiated and when it
+  * receives new props. Return an object to update state in response to
+  * prop changes. Return null to indicate no change to state.
+  *
+  * If an object is returned, its keys will be merged into the existing state.
+  *
+  * @return {object || null}
+  * @optional
+  */
+ getDerivedStateFromProps: 'TOP_LEVEL',
+
+ /**
+ * @description This lifecycle is invoked after an error has been thrown by a descendant component. It receives the error that was thrown as a parameter and should return a value to update state.
+ */
+ getDerivedStateFromError: 'TOP_LEVEL',
+
+ /**
+ * @description Next.js static function.
+ */
+ getInitialProps: 'TOP_LEVEL'
+};
 
 function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
@@ -83,6 +111,24 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
     }
   }
 
+  function assignStatics(Constructor, statics, spec, deleteStatics) {
+    for (var name in statics) {
+      if(typeof spec[name] === 'function') {
+        Constructor[name] = spec[name];
+        if(deleteStatics) {
+          delete spec[name];
+        }
+      }
+      else if(typeof statics[name] === 'function') {
+        Constructor[name] = statics[name];
+      }
+    }
+    
+    if(deleteStatics) {
+      delete spec['statics'];
+    }
+  }
+
   function ReactClassComponent() {}
 
   Object.assign(
@@ -98,15 +144,19 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       }
     }
   );
+
   /**
    * Creates a composite component class given a class specification.
    * See https://facebook.github.io/react/docs/top-level-api.html#react.createclass
    *
-   * @param {{ create: () => Object }} spec Class specification (which must define `render`).
+   * @param {{ create: () => Object, statics: Object }} spec Class specification (which must define `render`).
+   * @param {{ deleteStatics: boolean, staticsFunctions: Object }} options deleteReactStatics since we don't need them.
    * @return {function} Component constructor function.
    * @public
    */
-  function createClass(spec) {
+  function createClass(spec, options) {
+    options = options || { deleteStatics: true };
+    options.staticsFunctions = Object.assign({}, ReactClassStaticInterface, options.staticsFunctions, spec.statics );
     let functions = { length: 0 };
     let descriptors = {};
 
@@ -163,6 +213,22 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
     const constructorProto = Constructor.prototype;
 
+    function assignDelete(value, deleteStatics) {
+      if(typeof spec[value] !== 'undefined') {
+        Constructor[value] = spec[value];
+        if(deleteStatics) {
+          delete spec[value];
+        }
+      }
+    }
+
+    assignDelete('defaultProps', options.deleteStatics);
+    assignDelete('propTypes', options.deleteStatics);
+    assignDelete('contextType', options.deleteStatics);
+    assignDelete('contextTypes', options.deleteStatics);
+    assignDelete('childContextTypes', options.deleteStatics);
+    assignDelete('displayName', false);
+
     _invariant(
       spec.render,
       'createClass(...): Class specification must implement a `render` method.'
@@ -170,8 +236,15 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
     _invariant(
       spec.create,
-      'need to implement create method on class, this is how we will create instances for React.'
+      'createClass(...): need to implement create method on class, this is how we will create instances for React.'
     );
+
+    _invariant(
+      typeof (spec.statics || {}) === 'object',
+      'createClass(...): statics must be an object.'
+    );
+    
+    assignStatics(Constructor, options.staticsFunctions, spec, options.deleteStatics);
 
     let createdObj;
     try {
@@ -188,7 +261,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
     let obj = {};
     let thisProto = Object.getPrototypeOf(constructorProto);
     let setProtoOnObj = false;
-    
+
     while(newObject !== Object.prototype) {
       let setOnProto = false;
       Object.keys(newObject)
@@ -199,6 +272,9 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
               if(key === 'constructor') {
                 obj[key] = newObject[key];
                 setOnProto = true;
+              }
+              else if(options.staticsFunctions[key]) {
+                // no-op
               }
               else if(addedFunctions[key]) {
                 if(key !== 'create') {
@@ -235,20 +311,6 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
     if(setProtoOnObj) {
       Object.setPrototypeOf(thisProto, obj);
     }
-    
-
-    function assignDelete(value) {
-      if(typeof spec[value] !== 'undefined') {
-        Constructor[value] = spec[value];
-      }
-    }
-
-    assignDelete('defaultProps');
-    assignDelete('propTypes');
-    assignDelete('contextType');
-    assignDelete('contextTypes');
-    assignDelete('childContextTypes');
-    assignDelete('displayName');
 
     if(process.env.NODE_ENV !== 'production') {
       validateTypeDef(Constructor.displayName, Constructor.propTypes, 'propTypes');

@@ -3,7 +3,32 @@
 - Extended functionality to work for React.PureComponents and React.Component. 
 
 # Why to use this module.
-create-react-class requires you to change the way you use React. <b>Forget about getInitialState or getDefaultProps.</b> Just use state like you normally would and when the react class gets created well initialize the state for you.
+create-react-class requires you to change the way you use React. 
+<b>Forget about getInitialState or getDefaultProps.</b> 
+Just use state like you normally would and when the react class gets created well initialize the state for you. 
+
+``` js
+const Obj = {
+  create(props) {
+    this.state = {
+      header: null
+    }
+  }, 
+  componentDidMount() {},
+  componentDidUpdate() {},
+
+  render() {
+
+  }
+};
+```
+
+We also handle static functions like getDerivedStateFromProps for you so just define it like you would any function. no need to place it inside a statics variable.
+``` js
+Obj.getDerivedStateFromProps = (props, state) => {
+
+}
+```
 
 # Other Modules
 - @mavega/oloo 
@@ -150,6 +175,13 @@ const InputModal = {
   }
 };
 
+InputModal.getDerivedStateFromProps = (props, state) => {...};
+
+// This is not necessary since we handle
+// getDerivedStateFromProps and getDerivedStateFromError. 
+// Use it like above. 
+InputModal.statics = { getDerivedStateFromProps(props, state) {...} }
+
 InputModal.defaultProps = {
   existingObj: {
     // Doesn't need to exist for access in create to work.
@@ -171,7 +203,7 @@ InputModal.propTypes = {
 };
 
 export const InputModalObject = InputModal;
-export default createReactPure(InputModal);
+export default createReactPure(InputModal, optionalOptions);
 ```
 
 ``` js
@@ -182,6 +214,10 @@ import InputModal from 'SRC/InputModal';
 ```
 
 # Release Notes
+
+## 1.1.0+
+
+- added statics support.
 
 ## 1.0.0+
 
