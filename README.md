@@ -53,7 +53,7 @@ For Comparison a typically Class takes less than 100 milliseconds to create 1 mi
 
 <img src="./images/SpeedTest.PNG" width="50%" />
 
-# Examples
+# Guide
 
 ``` js
 import BaseModal from 'SRC/Modals/BaseModal';
@@ -114,6 +114,7 @@ const InputModal = {
        * Calling props like this will work even it its not in default props.
        */
       showing: props.showing
+      showing: this.props.showing // either works.
 
       /**
        * You can't access an obj on props if it is not defined in defaultProps.

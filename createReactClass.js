@@ -248,7 +248,8 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
     let createdObj;
     try {
-      createdObj = spec.create.call(this, spec.defaultProps || {});
+      const props = spec.defaultProps || {};
+      createdObj = spec.create.call({ props }, props);
     }
     catch(err) {
       warning(false, 'Error occurred creating object. Possible Solution: Make sure you are only using props that will exist no matter what. Define them using defaultProps.');
