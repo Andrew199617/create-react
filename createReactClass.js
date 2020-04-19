@@ -248,7 +248,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
     let createdObj;
     try {
-      const props = spec.defaultProps || {};
+      const props = Constructor.defaultProps || {};
       createdObj = spec.create.call({ props }, props);
     }
     catch(err) {
