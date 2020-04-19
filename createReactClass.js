@@ -321,13 +321,13 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       warning(
         !Constructor.childContextTypes, 
         "%s using legacy childContextTypes.",
-        Constructor.displayName || 'ReactClass'
+        spec.displayName || 'ReactClass'
       );
 
       warning(
         !Constructor.contextTypes, 
         "%s using legacy contextTypes.",
-        Constructor.displayName || 'ReactClass'
+        spec.displayName || 'ReactClass'
       );
 
       warning(
@@ -336,21 +336,21 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
           + 'componentShouldUpdate(). Did you mean shouldComponentUpdate()? '
           + 'The name is phrased as a question because the function is '
           + 'expected to return a value.',
-        Constructor.displayName || 'ReactClass'
+        spec.displayName || 'ReactClass'
       );
 
       warning(
         !spec.componentWillRecieveProps,
         '%s has a method called '
           + 'componentWillRecieveProps(). Did you mean componentWillReceiveProps()?',
-        Constructor.displayName || 'ReactClass'
+        spec.displayName || 'ReactClass'
       );
 
       warning(
         !spec.UNSAFE_componentWillRecieveProps,
         '%s has a method called UNSAFE_componentWillRecieveProps(). '
           + 'Did you mean UNSAFE_componentWillReceiveProps()?',
-        Constructor.displayName || 'ReactClass'
+        spec.displayName || 'ReactClass'
       );
     }
 
