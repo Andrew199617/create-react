@@ -155,7 +155,10 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
    * @public
    */
   function createClass(spec, options) {
-    options = options || { deleteStatics: true };
+    options = options || { };
+    if(typeof options.deleteStatics === 'undefined') {
+      options.deleteStatics = true;
+    }
     options.staticsFunctions = Object.assign({}, ReactClassStaticInterface, options.staticsFunctions, spec.statics );
     let functions = { length: 0 };
     let descriptors = {};
@@ -186,6 +189,10 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
       // Assign getters and setters to this.
       Object.defineProperties(this, descriptors);
+
+      if(!spec.create) {
+        return;
+      }
 
       const createdObj = spec.create.call(this, props);
       if(createdObj) {
@@ -234,10 +241,12 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       'createClass(...): Class specification must implement a `render` method.'
     );
 
-    _invariant(
-      spec.create,
-      'createClass(...): need to implement create method on class, this is how we will create instances for React.'
-    );
+    if(spec.create) {
+      _invariant(
+        typeof spec.create === 'function',
+        'createClass(...): create must be a method on class, this is how we will create instances for React.'
+      );
+    }
 
     _invariant(
       typeof (spec.statics || {}) === 'object',
@@ -246,10 +255,12 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
     
     assignStatics(Constructor, options.staticsFunctions, spec, options.deleteStatics);
 
-    let createdObj;
+    let createdObj = null;
     try {
-      const props = Constructor.defaultProps || {};
-      createdObj = spec.create.call({ props }, props);
+      if(spec.create) {
+        const props = Constructor.defaultProps || {};
+        createdObj = spec.create.call({ props }, props);
+      }
     }
     catch(err) {
       warning(false, 'Error occurred creating object. Possible Solution: Make sure you are only using props that will exist no matter what. Define them using defaultProps.');

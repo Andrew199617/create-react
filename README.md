@@ -219,6 +219,7 @@ import InputModal from 'SRC/InputModal';
 ## 1.1.0+
 
 - added statics support.
+- No need to have create method anymore.
 
 ## 1.0.0+
 
