@@ -190,7 +190,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       // Assign getters and setters to this.
       Object.defineProperties(this, descriptors);
 
-      if(!spec.create) {
+      if(typeof spec.create === 'undefined') {
         return;
       }
 
@@ -241,7 +241,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       'createClass(...): Class specification must implement a `render` method.'
     );
 
-    if(spec.create) {
+    if(typeof spec.create !== 'undefined') {
       _invariant(
         typeof spec.create === 'function',
         'createClass(...): create must be a method on class, this is how we will create instances for React.'
@@ -257,7 +257,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
     let createdObj = null;
     try {
-      if(spec.create) {
+      if(typeof spec.create !== 'undefined') {
         const props = Constructor.defaultProps || {};
         createdObj = spec.create.call({ props }, props);
       }
