@@ -329,6 +329,14 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       validateTypeDef(Constructor.displayName, Constructor.contextTypes, 'contextTypes');
       validateTypeDef(Constructor.displayName, Constructor.childContextTypes, 'childContextTypes');
 
+      if(typeof Constructor['propTypes'] === 'undefined') {
+        Constructor['propTypes'] = createdObj.propTypes;
+      }
+
+      if(typeof Constructor['defaultProps'] === 'undefined' && typeof newObject.defaultProps !== 'undefined') {
+        console.warn('createClass(...): Default props was found on base class but not on Class that inherits base class. This can cause unexpected results.');
+      }
+
       warning(
         !Constructor.childContextTypes, 
         "%s using legacy childContextTypes.",

@@ -220,6 +220,7 @@ import InputModal from 'SRC/InputModal';
 
 - added statics support.
 - No need to have create method anymore.
+- Added fallback to base class propTypes if none are defined.
 
 ## 1.0.0+
 
