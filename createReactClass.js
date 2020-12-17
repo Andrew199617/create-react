@@ -256,10 +256,18 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
         const props = Constructor.defaultProps || {};
         createdObj = spec.create.call({ props }, props);
 
-        _invariant(
-          createdObj.render,
-          'createClass(...): Class specification must implement a `render` method.'
-        );
+        if(createdObj) {
+          _invariant(
+            createdObj.render,
+            'createClass(...): Class specification must implement a `render` method.'
+          );
+        }
+        else {
+          _invariant(
+            spec.render,
+            'createClass(...): Class specification must implement a `render` method.'
+          );
+        }
       }
       else {
         _invariant(
