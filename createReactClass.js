@@ -60,10 +60,10 @@ function warning(condition, format, ...args) {
 // have .name set to the name of the variable being assigned to.
 function identity(fn) {
   return fn;
-}  
+}
 
 /**
-* Methods that React Interacts with. 
+* Methods that React Interacts with.
 * Everything else only needs to be known about by the class that created it.
 */
 const ReactClassStaticInterface = {
@@ -123,7 +123,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
         Constructor[name] = statics[name];
       }
     }
-    
+
     if(deleteStatics) {
       delete spec['statics'];
     }
@@ -236,11 +236,6 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
     assignDelete('childContextTypes', options.deleteStatics);
     assignDelete('displayName', false);
 
-    _invariant(
-      spec.render,
-      'createClass(...): Class specification must implement a `render` method.'
-    );
-
     if(typeof spec.create !== 'undefined') {
       _invariant(
         typeof spec.create === 'function',
@@ -252,7 +247,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       typeof (spec.statics || {}) === 'object',
       'createClass(...): statics must be an object.'
     );
-    
+
     assignStatics(Constructor, options.staticsFunctions, spec, options.deleteStatics);
 
     let createdObj = null;
@@ -260,6 +255,17 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       if(typeof spec.create !== 'undefined') {
         const props = Constructor.defaultProps || {};
         createdObj = spec.create.call({ props }, props);
+
+        _invariant(
+          createdObj.render,
+          'createClass(...): Class specification must implement a `render` method.'
+        );
+      }
+      else {
+        _invariant(
+          spec.render,
+          'createClass(...): Class specification must implement a `render` method.'
+        );
       }
     }
     catch(err) {
@@ -309,7 +315,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
         });
 
       newObject = Object.getPrototypeOf(newObject);
-      if(setOnProto) { 
+      if(setOnProto) {
         setProtoOnObj = true;
         if (newObject !== Object.prototype) {
           // This is so we keep inherited methods if there are any.
@@ -319,7 +325,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
         }
       }
     }
-    
+
     if(setProtoOnObj) {
       Object.setPrototypeOf(thisProto, obj);
     }
@@ -338,13 +344,13 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       }
 
       warning(
-        !Constructor.childContextTypes, 
+        !Constructor.childContextTypes,
         "%s using legacy childContextTypes.",
         spec.displayName || 'ReactClass'
       );
 
       warning(
-        !Constructor.contextTypes, 
+        !Constructor.contextTypes,
         "%s using legacy contextTypes.",
         spec.displayName || 'ReactClass'
       );

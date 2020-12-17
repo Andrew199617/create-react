@@ -7,6 +7,8 @@ yarn-error.log*
 
 testFolder
 
+typings
+
 # Runtime data
 pids
 *.pid

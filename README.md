@@ -1,11 +1,11 @@
 # LGD
-- Pulled create-react-class out of react. 
-- Extended functionality to work for React.PureComponents and React.Component. 
+- Pulled create-react-class out of react.
+- Extended functionality to work for React.PureComponents and React.Component.
 
 # Why to use this module.
-create-react-class requires you to change the way you use React. 
-<b>Forget about getInitialState or getDefaultProps.</b> 
-Just use state like you normally would and when the react class gets created well initialize the state for you. 
+create-react-class requires you to change the way you use React.
+<b>Forget about getInitialState or getDefaultProps.</b>
+Just use state like you normally would and when the react class gets created well initialize the state for you.
 
 ``` js
 const Obj = {
@@ -13,7 +13,7 @@ const Obj = {
     this.state = {
       header: null
     }
-  }, 
+  },
   componentDidMount() {},
   componentDidUpdate() {},
 
@@ -31,7 +31,7 @@ Obj.getDerivedStateFromProps = (props, state) => {
 ```
 
 # Other Modules
-- @mavega/oloo 
+- @mavega/oloo
    - Helps with inheritance of Objects.
 - @babel/plugin-transform-react-display-name
    - It can help with errors that occur. The name of the Object will show in Stack Trace.
@@ -64,7 +64,7 @@ const { Oloo } = require('@mavega/oloo');
 const { createReactPure } = require('@mavega/react');
 
 /**
-* @description A modal that helps with handling input from a user. 
+* @description A modal that helps with handling input from a user.
 * the extends doc helps with autocomplete for vscode.
 * @type {InputModalType}
 * @extends {BaseModalType, React.Component<InputModalProps, InputModalState>}
@@ -179,8 +179,8 @@ const InputModal = {
 InputModal.getDerivedStateFromProps = (props, state) => {...};
 
 // This is not necessary since we handle
-// getDerivedStateFromProps and getDerivedStateFromError. 
-// Use it like above. 
+// getDerivedStateFromProps and getDerivedStateFromError.
+// Use it like above.
 InputModal.statics = { getDerivedStateFromProps(props, state) {...} }
 
 InputModal.defaultProps = {
@@ -221,6 +221,7 @@ import InputModal from 'SRC/InputModal';
 - added statics support.
 - No need to have create method anymore.
 - Added fallback to base class propTypes if none are defined.
+- render could only be on base class now.
 
 ## 1.0.0+
 
