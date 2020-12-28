@@ -216,6 +216,12 @@ import InputModal from 'SRC/InputModal';
 
 # Release Notes
 
+## 1.2.0+
+
+- Slight Speed improvements.
+- Fixed bug that caused certain methods to not maintain inheritance properly.
+- Improved Debugging.
+
 ## 1.1.0+
 
 - added statics support.

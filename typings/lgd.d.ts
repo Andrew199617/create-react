@@ -7,25 +7,25 @@ declare module '@mavega/react' {
     /**
      * @description Should we delete statics from the object. Default is true.
      * If you want to be able to call a static function like getDerivedStateAndProps
-     * or if you want to use propTypes/defaultProps then set this to false. 
+     * or if you want to use propTypes/defaultProps then set this to false.
      * It is recommended you leave this on, so we clean up unnecessary properties.
      * DisplayName will always be available.
      */
-    deleteStatics: boolean; 
+    deleteStatics: boolean;
 
     /**
      * @description Static Functions that we will append to React Class.
-     * These are functions that will be Deleted from the Object you 
+     * These are functions that will be Deleted from the Object you
      * passed in and only exist on the React class.
-     * Use if you are using a framework that needs static functions on React Object.
-     * ``` js 
-     * { newFunc() { // default execution. }, func: true }
+     * Use if you are using a framework that needs static functions on React Objects.
+     * ``` js
+     * { newFunc() { }, newFunc2: true }
      * ```
      * If Spec defines newFunc then it will overwrite the newFunc.
      */
-    staticFunctions: { 
-      getDerivedStateFromProps: string, 
-      getDerivedStateFromError: string, 
+    staticFunctions: {
+      getDerivedStateFromProps: string,
+      getDerivedStateFromError: string,
       getInitialProps: string
     };
   }
@@ -39,14 +39,14 @@ declare module '@mavega/react' {
      * @description Create a React Component using an Object.
      *
      * Usage:
-     * 
+     *
      * You can use 'this' in create to set the instance created by react.
      * 'Create' returns an obj whos' functions we'll bind to the react instance.
      * We'll also assign all variables added to the instance returned by create (see below - baseObj).
      * For More detailed example see ReadMe.
      * ``` js
      * const BaseObj = {
-     * create(props) { const baseObj = Object.create(BaseObj); return baseObj; } 
+     * create(props) { const baseObj = Object.create(BaseObj); return baseObj; }
      * render() {...}
      * };
      * BaseObj.defaultProps = {...};
@@ -65,14 +65,14 @@ declare module '@mavega/react' {
      * @see https://reactjs.org/docs/react-api.html#reactpurecomponent
      *
      * Usage:
-     * 
+     *
      * You can use 'this' in create to set the instance created by react.
      * 'Create' returns an obj whos' functions we'll bind to the react instance.
      * We'll also assign all variables added to the instance returned by create (see below - baseObj).
      * For More detailed example see ReadMe.
      * ``` js
      * const BaseObj = {
-     * create(props) { } 
+     * create(props) { }
      * render() {}
      * };
      * BaseObj.propTypes = {...};

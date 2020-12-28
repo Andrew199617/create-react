@@ -160,7 +160,11 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       options.deleteStatics = true;
     }
     options.staticsFunctions = Object.assign({}, ReactClassStaticInterface, options.staticsFunctions, spec.statics );
-    let functions = { length: 0 };
+
+    // All the functions to bind to the react function when its instantiated.
+    let functions = new Map();
+
+    // All the getters, setters to assign to react function when its instantiated.
     let descriptors = {};
 
     // To keep our warnings more understandable, we'll use a little hack here to
@@ -183,8 +187,8 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       this.updater = updater || ReactNoopUpdateQueue;
       this.state = null;
 
-      for (let index = 0; index < functions.length; index++) {
-        this[functions[index].key] = functions[index].func.bind(this);
+      for (let [funcName, func] of functions) {
+        this[funcName] = func.bind(this);
       }
 
       // Assign getters and setters to this.
@@ -205,20 +209,6 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
     });
 
     Constructor.prototype = new ReactClassComponent();
-
-    // Helps with debugging. Will log the name of the constructor when a error occurs.
-    // Defaults to ReactClassComponent
-    if(spec.constructor) {
-      Constructor.prototype.constructor = spec.constructor;
-    }
-    else if(process.env.NODE_ENV !== 'production') {
-      eval(`Object.defineProperty(Constructor.prototype, 'constructor', { value: function ${spec.displayName || 'ReactClassComponent'}(...params) { return Constructor(...params) }, writable: false, enumerable: false, configurable: false });`);
-    }
-    else {
-      Constructor.prototype.constructor = Constructor;
-    }
-
-    const constructorProto = Constructor.prototype;
 
     function assignDelete(value, deleteStatics) {
       if(typeof spec[value] !== 'undefined') {
@@ -259,20 +249,20 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
         if(createdObj) {
           _invariant(
             createdObj.render,
-            'createClass(...): Class specification must implement a `render` method.'
+            `createClass(...): ${spec.displayName || 'Class'} specification must implement a 'render' method.`
           );
         }
         else {
           _invariant(
             spec.render,
-            'createClass(...): Class specification must implement a `render` method.'
+            `createClass(...): ${spec.displayName || 'Class'} specification must implement a 'render' method.`
           );
         }
       }
       else {
         _invariant(
           spec.render,
-          'createClass(...): Class specification must implement a `render` method.'
+          `createClass(...): ${spec.displayName || 'Class'} specification must implement a 'render' method.`
         );
       }
     }
@@ -283,44 +273,49 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
     let newObject = createdObj ? Object.getPrototypeOf(createdObj) : spec;
 
-    const addedFunctions = {};
     let obj = {};
-    let thisProto = Object.getPrototypeOf(constructorProto);
+
+    // Did the obj have an functions that were inherited.
+    // Well need to keep those function around to call super/Oloo.base()
     let setProtoOnObj = false;
 
     while(newObject !== Object.prototype) {
       let setOnProto = false;
+
+      // Transfer contructor to proto so we get detailed call stacks.
+      // This is only relavant if the base class has functions
+      // that were overwritten.
+      if(newObject['constructor']) {
+        obj['constructor'] = newObject['constructor'];
+        delete newObject['constructor'];
+      }
+
       Object.keys(newObject)
-        .forEach(key => {
-          const descriptor = Object.getOwnPropertyDescriptor(newObject, key);
-          if(typeof descriptor.get === 'undefined' && typeof descriptor.set === 'undefined') {
-            if(typeof newObject[key] === 'function') {
-              if(key === 'constructor') {
+      .forEach(key => {
+        const descriptor = Object.getOwnPropertyDescriptor(newObject, key);
+        if(typeof descriptor.get === 'undefined' && typeof descriptor.set === 'undefined') {
+          if(typeof newObject[key] === 'function') {
+            if(options.staticsFunctions[key]) {
+              // function was marked as static so we will ignore it.
+            }
+            else if(functions.has(key)) {
+              if(key !== 'create') {
+                // no need to bind, if you use Oloo.base it will bind at runtime.
                 obj[key] = newObject[key];
                 setOnProto = true;
               }
-              else if(options.staticsFunctions[key]) {
-                // no-op
-              }
-              else if(addedFunctions[key]) {
-                if(key !== 'create') {
-                  // no need to bind, if you use Oloo.base it will bind at runtime.
-                  obj[key] = newObject[key];
-                  setOnProto = true;
-                }
-              }
-              else {
-                addedFunctions[key] = true;
-                functions[functions.length] = { key, func: newObject[key] };
-                functions.length++;
-              }
             }
-            // Ignoring properties since we are assuming they are static properties.
+            else {
+              functions.set(key, newObject[key]);
+            }
           }
-          else {
-            descriptors[key] = descriptor;
-          }
-        });
+          // Ignoring properties since we are assuming they are static properties.
+        }
+        else {
+          // Property was a getter or setter.
+          descriptors[key] = descriptor;
+        }
+      });
 
       newObject = Object.getPrototypeOf(newObject);
       if(setOnProto) {
@@ -335,7 +330,32 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
     }
 
     if(setProtoOnObj) {
-      Object.setPrototypeOf(thisProto, obj);
+      // We need to create a copy other wise the prototype will be set
+      // and the methods will remain on all the other classes that use this method.
+      // This caused an error where certain methods were not found.
+      // The reason being the wrong base class was being assigned.
+      function ReactClassComponentCopy() {}
+
+      Object.assign(
+        ReactClassComponentCopy.prototype,
+        ReactClassComponent.prototype
+      );
+
+      Constructor.prototype = new ReactClassComponentCopy();
+
+      Object.setPrototypeOf(Object.getPrototypeOf(Constructor.prototype), obj);
+    }
+
+    // Helps with debugging. Will log the name of the constructor when a error occurs.
+    // Defaults to ReactClassComponent
+    if(spec.constructor) {
+      Constructor.prototype.constructor = spec.constructor;
+    }
+    else if(process.env.NODE_ENV !== 'production') {
+      eval(`Object.defineProperty(Constructor.prototype, 'constructor', { value: function ${spec.displayName || 'ReactClassComponent'}(...params) { return Constructor(...params) }, writable: false, enumerable: false, configurable: false });`);
+    }
+    else {
+      Constructor.prototype.constructor = Constructor;
     }
 
     if(process.env.NODE_ENV !== 'production') {
@@ -390,7 +410,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
     // Reduce time spent doing lookups by setting these on the prototype.
     for(const methodName in defaultClass) {
       if(!spec[methodName]) {
-        constructorProto[methodName] = null;
+        Constructor.prototype[methodName] = null;
       }
     }
 
