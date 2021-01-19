@@ -273,7 +273,10 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
     let newObject = createdObj ? Object.getPrototypeOf(createdObj) : spec;
 
-    let obj = {};
+    // Keep an object that has all the function in a chain.
+    // obj will be changing to its prototype while fullObj will be whats used.
+    const fullObj = {};
+    let obj = fullObj;
 
     // Did the obj have an functions that were inherited.
     // Well need to keep those function around to call super/Oloo.base()
@@ -323,7 +326,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
         if (newObject !== Object.prototype) {
           // This is so we keep inherited methods if there are any.
           const newProto = {};
-          Object.setPrototypeOf(obj, newProto)
+          Object.setPrototypeOf(obj, newProto);
           obj = newProto;
         }
       }
@@ -343,7 +346,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
 
       Constructor.prototype = new ReactClassComponentCopy();
 
-      Object.setPrototypeOf(Object.getPrototypeOf(Constructor.prototype), obj);
+      Object.setPrototypeOf(Object.getPrototypeOf(Constructor.prototype), fullObj);
     }
 
     // Helps with debugging. Will log the name of the constructor when a error occurs.

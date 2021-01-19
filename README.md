@@ -220,6 +220,7 @@ import InputModal from 'SRC/InputModal';
 
 - Slight Speed improvements.
 - Fixed bug that caused certain methods to not maintain inheritance properly.
+  - Deeply nested methods are getting maintain properly.
 - Improved Debugging.
 
 ## 1.1.0+
