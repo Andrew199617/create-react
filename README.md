@@ -222,6 +222,7 @@ import InputModal from 'SRC/InputModal';
 - Fixed bug that caused certain methods to not maintain inheritance properly.
   - Deeply nested methods are getting maintain properly.
 - Improved Debugging.
+- Fix bug in development environment where we tried to set proptypes from null obj.
 
 ## 1.1.0+
 

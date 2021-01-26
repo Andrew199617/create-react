@@ -366,7 +366,7 @@ function factory(ReactComponent, defaultClass, ReactNoopUpdateQueue) {
       validateTypeDef(Constructor.displayName, Constructor.contextTypes, 'contextTypes');
       validateTypeDef(Constructor.displayName, Constructor.childContextTypes, 'childContextTypes');
 
-      if(typeof Constructor['propTypes'] === 'undefined') {
+      if(typeof Constructor['propTypes'] === 'undefined' && createdObj) {
         Constructor['propTypes'] = createdObj.propTypes;
       }
 
